@@ -60,19 +60,29 @@ const UserHistory = props => {
           />
         }
       >
-        {
-          history
-          .sort((a,b) => new Date(b.date).valueOf() - new Date(a.date).valueOf())
-          .map(sale => <SaleCard key={sale._id} sale={sale} />)
+        { !history.length && !loading ?
+            <Text style={styles.noDataText}>
+              No se encontraron reservas hasta el momento
+            </Text>
+          : history
+            .sort((a,b) => new Date(b.date).valueOf() - new Date(a.date).valueOf())
+            .map(sale => 
+            <SaleCard 
+              key={sale._id} 
+              sale={sale} 
+            />
+          )
         }
         <View height={100} />
       </ScrollView>
-      <View style={styles.footer}>
-        <View style={styles.debtContainer}>
-          <Text style={styles.tag}>TOTAL A PAGAR</Text>
-          {debt && <Text h4 style={styles.value}>${formatNumber(debt)}</Text>}
+      {debt && 
+        <View style={styles.footer}>
+          <View style={styles.debtContainer}>
+            <Text style={styles.tag}>TOTAL A PAGAR</Text>
+            <Text h4 style={styles.value}>${formatNumber(debt)}</Text>
+          </View>
         </View>
-      </View>
+      }
     </SafeAreaView>
   );
 }

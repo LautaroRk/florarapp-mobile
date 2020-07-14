@@ -32,6 +32,15 @@ const createStyles = props => StyleSheet.create({
   value: {
     color: Colors.white,
   },
+  noDataText: {
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.grey,
+    marginTop: 20,
+    width: '70%',
+    alignSelf: 'center',
+  },
 });
 
 export default createStyles;
