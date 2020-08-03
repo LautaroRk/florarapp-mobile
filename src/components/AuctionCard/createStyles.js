@@ -40,6 +40,12 @@ const createStyles = props => StyleSheet.create({
     fontSize: props.title.length > 20 ? props.title.length > 40 ? 15 : 18 : 20,
     fontWeight: 'bold',
   },
+  priceContainer: {
+    flexDirection: 'row',
+  },
+  price: {
+    color: props.priceUpdating ? Colors.green : Colors.black,
+  },
   body: {
     flex: 0.7,
     flexDirection: 'row',

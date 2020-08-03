@@ -8,6 +8,8 @@ export const Colors = {
   lighter: "#F3F3F3",
   white: "#FFF",
   error: 'red',
+  red: 'red',
+  green: 'green',
 }
 
 export const theme = {

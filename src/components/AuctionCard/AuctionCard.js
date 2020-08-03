@@ -12,7 +12,7 @@ import Timer from './Timer/Timer';
 
 const AuctionCard = props => {
 
-  const { auction = {}, fetchFreq } = props;
+  const { auction = {} } = props;
 
   const {
     article_id,
@@ -36,14 +36,21 @@ const AuctionCard = props => {
     auction_id,
   } = auction;
 
-  const [price, setPrice] = useState(initial_price);
   const [hasEnded, setHasEnded] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+
   let [isActive, setIsActive] = useState(false);
   const isActiveRef = useRef(null);
   isActiveRef.current = {isActive, setIsActive};
+  
   const [lastHookedAt, setLastHookedAt] = useState(null);
+
+  let [price, setPrice] = useState(initial_price);
+  const priceRef = useRef(null);
+  priceRef.current = { price, setPrice };
+  const [priceUpdating, setPriceUpdating] = useState(false);
+  const [priceTimeoutId, setPriceTimeoutId] = useState(null);
 
   useEffect(() => {
     // @TODO: Separar hook de timeout?
@@ -52,25 +59,26 @@ const AuctionCard = props => {
     const now = new Date().valueOf();
     // CHEQUEAR: prevenimos que se ejecute el hook repetidas veces
     if (!lastHookedAt || now - lastHookedAt >= 3000) {
-      //console.log('EFFECT RUN: ', auction_id, isActive ? 'ACTIVE' : '');
+      console.log('EFFECT RUN: ', auction_id, isActive ? 'ACTIVE' : '');
       setLastHookedAt(now);
       const starts = new Date(start_date).valueOf();
       const ends = new Date(end_date).valueOf();
   
   
       if (now >= starts && ends > now) {
-        isActiveRef.current.setIsActive(true);
+        startAuction();
       } else if (ends <= now) {
         setHasEnded(true);
-      } else {
+      } 
+      else {
         // Si todavia no empezo
         let timeout = starts - now;
-        if (timeout <= fetchFreq && !timeoutId) {
+        if (timeout <= 10000 && !timeoutId) {
           let _ = setTimeout(() => {
             startAuction();
           }, timeout);
           setTimeoutId(_);
-          //console.log("TIMEOUT SET: ", auction_id, timeout, timeoutId);
+          console.log("TIMEOUT SET: ", auction_id, timeout, timeoutId);
         }
       }
     }
@@ -79,6 +87,8 @@ const AuctionCard = props => {
       if (timeoutId) {
         clearTimeout(timeoutId);
         setTimeoutId(null);
+        clearTimeout(priceTimeoutId);
+        setPriceTimeoutId(null);
         setLastHookedAt(null);
         //console.log("TIMEOUT CLEARED: ", auction_id, timeoutId);
       }
@@ -93,6 +103,7 @@ const AuctionCard = props => {
   const startAuction = () => {
     isActiveRef.current.setIsActive(true);
     //console.log("ACTIVATE", auction_id, isActive);
+    // @TODO: sacar metodo o terminar de implementar con mensaje de 'auction started'
   };
 
   const getPrice = (timeLeft) => {
@@ -105,8 +116,18 @@ const AuctionCard = props => {
   };
 
   const updatePrice = (timeLeft) => {
+
     const newPrice = getPrice(timeLeft);
-    if (newPrice !== price) setPrice(newPrice);
+
+    if (newPrice != priceRef.current.price) {
+      priceRef.current.setPrice(newPrice);
+      setPriceUpdating(true);
+
+      const _ = setTimeout(() => {
+        setPriceUpdating(false);
+      }, 1000);
+      setPriceTimeoutId(_);
+    };
   };
 
   // Muestra los detalles del producto
@@ -174,7 +195,7 @@ const AuctionCard = props => {
     if (variety) title += ` ${variety}`;
   }
 
-  const styles = createStyles({ title, stock_left });
+  const styles = createStyles({ title, stock_left, priceUpdating });
 
   return (
     <View style={styles.container}>
@@ -186,7 +207,10 @@ const AuctionCard = props => {
           <Text style={styles.title}>{ title }</Text>
         </View>
         {/* PRICE */}
-        <Text h3>{ '$' + price }</Text>
+        <View style={styles.priceContainer}>
+          {priceUpdating && <Icon name='arrow-drop-down' type='material' color={Colors.green} size={15}/>}
+          <Text h3 style={styles.price}>{ '$' + price }</Text>
+        </View>
       </View>
       {/* BODY */}
       <View style={styles.body}>

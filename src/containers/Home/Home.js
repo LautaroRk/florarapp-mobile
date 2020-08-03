@@ -4,6 +4,7 @@ import {
   View, 
   SafeAreaView, 
   RefreshControl,
+  AppState,
 } from 'react-native';
 import { 
   Text,
@@ -21,26 +22,40 @@ import socket from '../../apis/socket';
 const Home = props => {
 
   const [loading, setLoading] = useState(false);
-  const [fetchInterval, setFetchInterval] = useState(null);
+  //const [fetchInterval, setFetchInterval] = useState(null);
   
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState('');
 
+  const [appState, setAppState] = useState(AppState.currentState);
+  const handleAppStateChange = async state => {
+    setAppState(state);
+    if (state === 'active') {
+      await getAuctionList();
+    }
+  }
+
   // Frecuencia con la que se vuelve a pedir las subastas
-  const fetchFreq = 60000;
+  //const fetchFreq = 60000;
 
   useEffect(() => {
+    AppState.addEventListener('change', handleAppStateChange);
     (async () => {
       await getAuctionList();
-      const intervalId = setInterval(async () => {
-        await getAuctionList();
-      }, fetchFreq);
-      setFetchInterval(intervalId);
+      // const intervalId = setInterval(async () => {
+      //   await getAuctionList();
+      // }, fetchFreq);
+      // setFetchInterval(intervalId);
     })();
     return () => {
-      clearInterval(fetchInterval);
+      //clearInterval(fetchInterval);
+      AppState.removeEventListener('change', handleAppStateChange);
     };
   }, []);
+
+  // useEffect(() => {
+  //   console.log(appState);
+  // });
 
   // cuando se recibe un aviso de compra por socket
   useEffect(() => {
@@ -48,6 +63,12 @@ const Home = props => {
       console.log("stock update", auction);
       props.dispatch(updateStock(auction._id, auction.stock_left));
     });
+
+    socket.on("auction started", async () => {
+      console.log("AUCTION STARTED");
+      await getAuctionList();
+    });
+
     return () => {
       socket.disconnect();
     }
@@ -98,7 +119,7 @@ const Home = props => {
             <AuctionCard
               key={auction.auction_id}
               auction={auction}
-              fetchFreq={fetchFreq}
+              //fetchFreq={fetchFreq}
             />
           )
         }
